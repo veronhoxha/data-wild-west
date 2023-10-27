@@ -1,0 +1,54 @@
+version: 2.1
+orbs:
+  python: circleci/python@2.0.3
+  heroku: circleci/heroku@1.2.6
+
+jobs:
+  build_and_test: 
+    executor: python/default
+    steps:
+      - checkout
+      
+      - python/install-packages:
+          pkg-manager: pip
+          
+      - run:
+          name: Install Jupyter
+          command: pip install jupyter
+
+       - run:
+          name: Execute Jupyter Notebooks
+          command: |
+            for notebook in *.ipynb; do
+              script_name="${notebook%.ipynb}.py"
+              jupyter nbconvert --to script "$notebook"
+              python "$script_name"
+            done
+
+      - run:
+          name: Run tests
+          command: python -m pytest
+
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  deploy: 
+    executor: python/default
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - heroku/deploy-via-git:
+          force: true
+
+workflows:
+  test_my_app:
+    jobs:
+      - build_and_test
+      - deploy:
+          requires:
+            - build_and_test 
+          filters:
+            branches:
+              only: main 
