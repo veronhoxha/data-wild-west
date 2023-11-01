@@ -1,13 +1,17 @@
 <View>
-  <Labels name="label" toName="text">
-  <Label value="Equipment" background="#e63946"/><Label value="Location" background="#f1faee"/><Label value="Hygiene" background="#a8dadc"/><Label value="Staff" background="#457b9d"/><Label value="Not Determined" background="#1d3557"/></Labels>
   <Text name="text" value="$text"/>
-  <View style="box-shadow: 2px 2px 5px #999; padding: 20px; margin-top: 2em; border-radius: 5px;">
-    <Header value="Choose text sentiment"/>
-    <Choices name="sentiment" toName="text" choice="single" showInLine="true">
-      <Choice value="Positive"/>
-      <Choice value="Negative"/>
-      <Choice value="Neutral"/>
-    </Choices>
-  </View>
+  <Taxonomy name="taxonomy" toName="text">
+    <Choice value="Positive">
+       <Choice value="Equipment"/>
+      <Choice value="Location"/>
+      <Choice value="Hygiene"/>
+      <Choice value="Staff"/>
+    </Choice>
+    <Choice value="Negative">
+      <Choice value="Equipment"/>
+      <Choice value="Location"/>
+      <Choice value="Hygiene"/>
+      <Choice value="Staff"/>
+    </Choice>
+  </Taxonomy>
 </View>
