@@ -57,13 +57,20 @@ def parse_file(filepath):
     return pd.DataFrame.from_dict(reviews, orient="index")
     
 
-annotations_directory = input("Insert the relative path: ") 
+annotations_directory = "../Annotations/"#input("Insert the relative path: ") 
 # Get all JSON files to parse
 dfs = []
 for file in os.listdir(annotations_directory):
-    if if.endswith(".json"):
-        dfs.append(parse_file(file))
+    if file.endswith("y.json"):
+        dfs.append(parse_file(annotations_directory+file))
 
 # Join all files
 df = pd.concat(dfs).reset_index(drop=True)
+print(df.head())
+print(df.shape)
 
+test = pd.read_csv("../Annotations/Gino.csv", encoding="utf-8")
+
+test = test[~test.text.isin(df.text)]
+
+test.to_csv("testing.csv", encoding="utf-8", index=False)
