@@ -17,11 +17,11 @@ translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
 print("Translated text:", translated_text)
 """
 
-df1 = pd.read_csv("./data/TrustPilot_reviews.csv", encoding="utf-16")
-df2 = pd.read_csv("./data/TrustPilot_reviews-2.csv", encoding="utf-16")
-df = pd.concat([df1, df2])
-df.drop("Unnamed: 0", axis=1, inplace=True)
-df.drop_duplicates(inplace=True)
+df = pd.read_csv("./data/TrustPilot.csv", encoding="utf-16")
+#df2 = pd.read_csv("./data/TrustPilot_reviews-2.csv", encoding="utf-16")
+#df = pd.concat([df1, df2])
+#df.drop("Unnamed: 0", axis=1, inplace=True)
+#df.drop_duplicates(inplace=True)
 
 print(df.head())
 print(df.shape)
@@ -36,6 +36,8 @@ for ix, row in df.iterrows():
     translated_ids = model.generate(input_ids, max_length=512)
     translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
     translations.append(translated_text)
+
+    print(ix)
 
 
 df["translated_reviews"] = translations
