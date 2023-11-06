@@ -7,7 +7,7 @@ import os
 def parse_file(filepath):
 
     # Open file
-    file = open(filepath)
+    file = open(filepath, encoding="utf-8")
     # Parse JSON to dict
     jfile = json.load(file)
 
@@ -29,6 +29,7 @@ def parse_file(filepath):
 
         # Extract the instance id and text review
         reviews[row["id"]] = {}
+        reviews[row["id"]]["ID"] = row["data"]["ID"]
         reviews[row["id"]]["text"] = row["data"]["text"]
         
         # For each annotation of the instance
@@ -61,16 +62,14 @@ annotations_directory = "../Annotations/"#input("Insert the relative path: ")
 # Get all JSON files to parse
 dfs = []
 for file in os.listdir(annotations_directory):
-    if file.endswith("y.json"):
-        dfs.append(parse_file(annotations_directory+file))
+    if file.endswith(".json"):
+        _ = parse_file(annotations_directory+file)
+        print(f"File {file}, shape {_.shape}")
+        dfs.append(_)
 
 # Join all files
 df = pd.concat(dfs).reset_index(drop=True)
 print(df.head())
 print(df.shape)
-
-test = pd.read_csv("../Annotations/Gino.csv", encoding="utf-8")
-
-test = test[~test.text.isin(df.text)]
-
-test.to_csv("testing.csv", encoding="utf-8", index=False)
+test = df.drop_duplicates("ID")
+print(test.shape)
