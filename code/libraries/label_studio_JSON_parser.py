@@ -56,20 +56,3 @@ def parse_file(filepath):
 
     # Return as a Pandas DataFrame
     return pd.DataFrame.from_dict(reviews, orient="index")
-    
-
-annotations_directory = "../Annotations/"#input("Insert the relative path: ") 
-# Get all JSON files to parse
-dfs = []
-for file in os.listdir(annotations_directory):
-    if file.endswith(".json"):
-        _ = parse_file(annotations_directory+file)
-        print(f"File {file}, shape {_.shape}")
-        dfs.append(_)
-
-# Join all files
-df = pd.concat(dfs).reset_index(drop=True)
-print(df.head())
-print(df.shape)
-test = df.drop_duplicates("ID")
-print(test.shape)
