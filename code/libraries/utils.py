@@ -15,13 +15,20 @@ from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
+
 def day_schedule_periods(weekday_text):
     '''
     Author: Constantin-Bogdan Craciun
 
-    TODO: DESCRIPTION
-    '''
+    Converts and formats the opening and closing times of each day of the week from a structured input.
+    
+    Arguments:
+    - weekday_text (list): A list of dictionaries where each dictionary contains the open and close times for a specific day of the week, with each day represented as an integer.
 
+    Returns:
+    - dict: A dictionary where each key is the name of a day of the week and the corresponding value is a string representing the formatted open and close times for that day, in 'HH:MM AM/PM' format.
+    '''
+    
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     some_d = {}
 
@@ -39,11 +46,13 @@ def day_schedule_periods(weekday_text):
         some_d[days[day]] = formatted_time_open + " - " + formatted_time_close
     return some_d
 
+
 def google_querier(gmaps, query_string):
     '''
     Author: Constantin-Bogdan Craciun
 
     Function to submit a query to the Google Maps API.
+    
     Arguments:
         - gmaps: API engine
         - query_string: A string to submit to the API
@@ -110,6 +119,7 @@ def google_querier(gmaps, query_string):
 def check_dataframe_results(df):
     '''
     Author: Gino F. Fazzi
+    
     Simple function to check the resulting dataframe.
 
     Arguments:
@@ -220,8 +230,14 @@ def check_response(url):
 def make_soup(html_text):
     '''
     Author: Christian Margo Hansen
+    
+    Parses a given HTML text and creates a BeautifulSoup object for easy HTML parsing and manipulation.
 
-    TODO: DESCRIPTION
+    Arguments:
+    - html_text (str): A string containing HTML content. This is the text that will be parsed and converted into a BeautifulSoup object.
+
+    Returns:
+    - BeautifulSoup object: An object that represents the parsed HTML.
     '''
     return BeautifulSoup(html_text, 'html.parser')
 
@@ -229,8 +245,14 @@ def make_soup(html_text):
 def get_contents(soup):
     '''
     Author: Christian Margo Hansen
+    
+    Extracts and structures review data from a BeautifulSoup object representing parsed HTML of a reviews page.
 
-    TODO: DESCRIPTION
+    Arguments:
+    - soup (BeautifulSoup object): A BeautifulSoup object created from HTML content of a webpage, specifically structured to contain reviews.
+
+    Returns:
+    - list: A list of dictionaries, where each dictionary represents a single review's details extracted from the HTML.
     '''
 
     entries = []
