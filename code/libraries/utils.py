@@ -315,7 +315,15 @@ def get_lat_lng(gmaps, address):
     '''
     Author: Veron Hoxha
 
-    TODO: DESCRIPTION
+    This function retrieves the latitude and longitude of a specified address using the Google Maps API.
+    
+    Arguments:
+    - gmaps (Google Maps Client object): An instance of the Google Maps Client, used to interact with the Google Maps API.
+    - address (str): The address for which latitude and longitude coordinates are to be obtained.
+
+    Returns:
+    - tuple: A tuple containing the latitude and longitude (lat, lng) of the given address if successful.
+    - bool: Returns False if the geocoding process fails or if the address is not found.
     '''
     try:
         geocode_result = gmaps.geocode(address)
