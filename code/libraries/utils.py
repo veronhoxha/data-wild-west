@@ -3,17 +3,21 @@
 
 # IMPORTS
 from datetime import datetime
-import pandas as pd
-from geopy.distance import geodesic
-import requests
-import re # regular expressions
-from bs4 import BeautifulSoup # xml parsing
-import pandas as pd
 import regex as re
+
+import pandas as pd
+import numpy as np
+
+from geopy.distance import geodesic
+
+import requests
+from bs4 import BeautifulSoup # xml parsing
+
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+from tqdm import tqdm
 
 
 def day_schedule_periods(weekday_text):
@@ -359,3 +363,160 @@ def get_lat_lng(gmaps, address):
     except Exception as e:
         print(f"An error occurred while geocoding: {e}")
         return False
+    
+
+class KBHFacilitiesWebCrawler:
+    '''
+    Author: Christian Margo Hansen (structured as class by Gino F. Fazzi)
+
+    TODO: ADD DESCRIPTION
+    '''
+
+    def __init__(self, url: str='https://kbhkort.kk.dk/spatialmap?page=widget-view&name=motion/motionslisten', chrome_driver_path: str='libraries/chromedriver-win64/chromedriver.exe'):
+
+        # Define URL
+        self.url = url
+
+        # Initialise a dictionary to hold the scraped data
+        self.data = {'type':[], 'activity':[], 'location':[], 'website':[], 'gender':[], 'age':[], 'special':[], 'address':[]}
+
+        options = ChromeOptions()       # Get Chrome options
+        options.headless = True         # This stops an actual browser from being open and shown
+        self.driver = Chrome(chrome_driver_path, options=options)  # Optional argument, if not specified will search path.
+        self.driver.get(url)
+
+        print("Driver and URL passed. Wait a second...")
+        self.driver.implicitly_wait(20) # Wait for the website to load
+
+        self.count = len(self.driver.find_elements(By.XPATH, '/html/body/div/div[4]/div/ul/li'))
+        print(f'There is a total of {self.count} entries. Use the ".get()" method to get all entries.')
+
+    
+    def __crawl(self):
+
+        # At the time of writing, there were 606 entries (2023-11-16)
+        for i in tqdm(range(1, self.count+1)): 
+
+            # Activity type/category - this is indicated by the associated icon. The icon name is collected.
+            icon = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[1]/img')
+            self.data['type'].append(icon.get_attribute('src'))
+
+            # Name/title of the activity
+            type = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[1]/strong[1]')
+            self.data['activity'].append(type.text)
+
+            # Location of activity - not all entries list a location
+            try:
+                location = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[1]/strong[2]')
+                self.data['location'].append(location.text)
+            except NoSuchElementException:
+                self.data['location'].append(None)
+
+            # Website
+            try:
+                site = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[2]/span[1]/a')
+                self.data['website'].append(site.get_attribute('href'))
+            except NoSuchElementException:
+                self.data['website'].append(None)
+            
+
+            # Gender
+            gender = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[2]/span[4]') # This works
+            self.data['gender'].append(gender.text)
+
+            # Age Group
+            age = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[2]/span[5]')
+            self.data['age'].append(age.text)
+
+            # Address of activity - some entries have an extra field, so this messess with the current XPath implementation
+            # Therefore, each element needs to be checked that it is indeed an address.
+            # Luckily, all address entries in the table contain the prefix 'Mødested' (meeting place).
+            try:
+                address = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[2]/span[6]')
+                if not address.text.startswith('Mødested: ') and address.text.startswith("| Særlig"): # Check that the text is indeed the address
+                    self.data['special'].append(address.text)
+                    try:
+                        address = self.driver.find_element(By.XPATH, f'/html/body/div/div[4]/div/ul/li[{i}]/div[2]/div[2]/span[7]')
+                        self.data['address'].append(address.text) #.removeprefix('Mødested: '))
+                    except NoSuchElementException:
+                        self.data['address'].append(None)
+                else:
+                    self.data['special'].append(None)
+                    self.data['address'].append(address.text) #.removeprefix('Mødested: '))
+            except NoSuchElementException:
+                self.data['special'].append(None)
+                self.data['address'].append(None)
+
+        self.driver.quit()
+
+
+    def get(self):
+        
+        # Crawl and store data in self.data containers
+        self.__crawl()
+
+        # Create and inspect the dataframe
+        df_raw = pd.DataFrame.from_dict(self.data)
+
+        dict_type = {'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/boldspil_26x26.png': 'ball_sports',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/dans_26x26.png': 'dance',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/fitness_26x26.png': 'fitness',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/gym_26x26.png': 'gym',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/kampsport_26x26.png': 'martial_arts',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/loeb_26x26.png': 'running',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/natur_26x26.png': 'nature',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/svoemning_26x26.png': 'swimming',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/udemotion_26x26.png': 'outdoors',
+                    'https://kbhkort.kk.dk/images/ikoner/suf/sundhed/yoga_26x26.png': 'yoga'}
+        dict_gender = {'Køn: Begge':'both', 'Køn: Kvinder':'women', 'Køn: Mænd':'men'}
+        dict_age = {'| Aldersgruppe: Alle': 'all', '| Aldersgruppe: Seniorer': 'seniors'}
+        dict_special = {'+ 65 år':'65+',
+                        '+60':'60+', 
+                        '+60 år':'60+', 
+                        '+65':'65+', 
+                        '+65 år':'65+',
+                        '65+ år':'65+',
+                        'Kvinder 45 +':'45+', 
+                        'Kvinder 65+ år':'65+',
+                        'Mænd 65 år+':'65+',
+                        'PAN har fokus på inklusion af mennesker med et særligt fokus på seksuel mangfoldighed og kønsdiversitet.':'PAN har fokus på inklusion af mennesker med et særligt fokus på seksuel mangfoldighed og kønsdiversitet',
+                        'mænd +65 år':'65+'}
+        dict_address = {"":"None"}
+
+        df_test["special"] = df_test["special"].apply(lambda s:s.replace('| Særlig målgruppe: ', ''))
+        df_test["address"] = (df_test["address"].str.removeprefix("Mødested:")).str.strip()
+
+        mask = df_test["location"]=='Kommunal park'
+        df_test.loc[mask, ["activity", "location"]] = (df_test.loc[mask, ["location","activity"]].values)
+
+        df_test = df_test.replace({"type": dict_type, "gender": dict_gender, "age": dict_age, "special":dict_special, "address":dict_address})
+
+        temp = {'health':['fysio', 'hjært', 'nær', 'puls', 'hjert', 'mind', 'knæ', 'ryg', 'senior', 'stabil', 'mobil'],
+                'sport':['bold', 'ball', 'tennis', 'minton', 'golf', 'cricket', 'volley'], 
+                'fitness':['yoga', 'træn', 'gym', 'motion', 'fitness', 'cyk', 'løb', 'stav', 'cross', 'ro', 'kajak', 'zumba', 'pilates', 'kamp', 'svøm', 'spin', 'kondi'], 
+                'recreation':['billiard', 'billard', 'dart', 'dans', 'dance', 'bowl', 'gå', 'walk', 'spil', 'petanque', 'park', 'have'] 
+                }
+
+        dict_activity = {}
+        for k,v in temp.items():
+            for x in v:
+                dict_activity.setdefault(x,k)
+
+        temp = df_test["activity"].copy()
+        for i in range(len(temp)):
+            for key in dict_activity.keys():
+                if re.search(key, temp[i].lower()): #      key in temp[i].lower():
+                    temp[i] = str(dict_activity[key].strip(""))
+                    break
+
+            if temp[i] not in dict_activity.values():
+                #print(i, temp[i])
+                temp[i] = "other"
+
+        sorted(list(zip(np.unique(temp, return_counts=True)[0], np.unique(temp, return_counts=True)[1])), key = lambda x:x[1]), len(np.unique(temp, return_counts=True)[0])
+
+        df_test["category"] = temp
+
+        df_test = df_test[['type', 'activity', 'category', 'location', 'website', 'gender', 'age', 'special','address']]
+
+        return self.df_test
