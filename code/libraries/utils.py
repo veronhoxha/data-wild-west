@@ -1,23 +1,31 @@
 
 ############ UTILS ############
 
-# IMPORTS
+### IMPORTS ###
+# BASICS
 from datetime import datetime
 import regex as re
 
+# DATA MANIPULATION
 import pandas as pd
 import numpy as np
 
-from geopy.distance import geodesic
-
+# SCRAPPING
 import requests
 from bs4 import BeautifulSoup # xml parsing
-
 from selenium.webdriver import Chrome
 from selenium.webdriver import ChromeOptions
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+
+# NLP
+from emoji import UNICODE_EMOJI
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+# OTHERS
 from tqdm import tqdm
+from geopy.distance import geodesic
+from IPython.display import clear_output
 
 
 def day_schedule_periods(weekday_text):
@@ -365,7 +373,7 @@ def get_lat_lng(gmaps, address):
         return False
     
 
-class KBHFacilitiesWebCrawler:
+class KBHFacilitiesWebScraper:
     '''
     Author: Christian Margo Hansen (structured as class by Gino F. Fazzi)
 
@@ -520,3 +528,180 @@ class KBHFacilitiesWebCrawler:
         df_test = df_test[['type', 'activity', 'category', 'location', 'website', 'gender', 'age', 'special','address']]
 
         return self.df_test
+    
+
+def remove_emojis(text):
+    '''
+    Author: Gino F. Fazzi
+
+    Custom function to remove unicode characters depicting an emoji.
+
+    Arguments:
+     - text: String with potential emojis.
+
+    returns the string without emojis.
+    '''
+
+    for lang in UNICODE_EMOJI:
+        for em in UNICODE_EMOJI[lang]:
+            text = text.replace(em, "")
+
+    return text
+    
+"""
+def translate_text(input_text, model, tokenizer):
+    '''
+    Author: Gino F. Fazzi
+
+    Custom function to translate text. Can be applied to pandas dataframe column.
+
+    Arguments:
+     - input_text: The text in original language to translate.
+     - model: The HuggingFace model object.
+     - tokenizer: The HuggingFace tokenizer object.
+
+    Returns the translated text.
+    '''
+    input_ids = tokenizer.encode(input_text, max_length=512, return_tensors="pt")
+    translated_ids = model.generate(input_ids, max_length=512)
+    translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
+
+    return translated_text
+"""
+
+def translate(df, text_colname: str, translation_colname: str, model_name: str="Helsinki-NLP/opus-mt-da-en"):
+    '''
+    Author: Gino F. Fazzi
+
+    Custom function to translate a text column from a given dataset using a default Huggingface pretrained model.
+
+    Arguments:
+     - df: The dataframe that contains the text column to translate.
+     - model_name: The HuggingFace model name. By default danish to enlish.
+
+    Returns: the original dataframe with the translations in a new column.
+    '''
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    max_length = 512
+
+    translations = []
+
+    for ix, row in df.iterrows():
+
+        # For showing progress
+        clear_output(wait=True)
+        print(f"{ix / len(df):.2%}", end="\r")
+
+        # Get the text to translate
+        input_text = row[text_colname]
+
+        # If text is longer than max tokens, split, translate each chunk and concatenate the results
+        if len(input_text) > max_length:
+
+            # Split the input text into smaller chunks
+            input_chunks = [input_text[i:i+max_length] for i in range(0, len(input_text), max_length)]
+
+            translated_chunks = []
+            for chunk in input_chunks:
+                input_ids = tokenizer.encode(chunk, return_tensors="pt", max_length=max_length, truncation=True)
+                translated_ids = model.generate(input_ids, max_length=max_length, num_return_sequences=1, pad_token_id=tokenizer.pad_token_id)
+                translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
+                translated_chunks.append(translated_text)
+            
+            translated_text = ''.join(translated_chunks)
+
+        # If less than max_length, one sweep
+        else:
+            input_ids = tokenizer.encode(input_text, return_tensors="pt", max_length=max_length, truncation=True)
+            translated_ids = model.generate(input_ids, max_length=max_length, num_return_sequences=1, pad_token_id=tokenizer.pad_token_id)
+            translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
+        
+        translations.append(translated_text)
+
+    # Append to dataset
+    df[translation_colname] = translations
+
+    return df
+
+
+def get_reviews(gmaps, search_input):
+    '''
+    TODO: ADD DESCRIPTION
+    '''
+    try:
+        place_result = gmaps.find_place(input=search_input, input_type='textquery')
+        if place_result and len(place_result['candidates']) > 0:
+            place_id = place_result['candidates'][0]['place_id']
+            place_details = gmaps.place(place_id=place_id)
+            reviews = place_details['result'].get('reviews', [])
+            return [(review['text'], review.get('rating')) for review in reviews]
+        else:
+            return None
+    except Exception as e:
+        return None
+    
+    
+def review_finder(gmaps, df):
+    '''
+    TODO: ADD DESCRIPTION
+    '''
+
+    df['lat'] = None
+    df['lng'] = None
+
+    list = []
+
+    for index, row in df.iterrows():
+        address = str(row['address']).strip() 
+        location = str(row['location']).strip()
+
+        # try getting reviews based on location
+        reviews = get_reviews(location)
+        
+        #if no reviews based on location try the address
+        if not reviews:
+            get_reviews(gmaps, address)
+                    
+        lat_lng = None
+        #look first if we can find lat and lng for the address
+        if address:
+            lat_lng = get_lat_lng(address)
+        # if there is no address or we can't find the coordiantes using address we use the location to find the lat and lng
+        if not lat_lng: 
+            lat_lng = get_lat_lng(location)
+        
+        if reviews:
+            for review in reviews:
+                review_text, review_rating = review 
+                new_row = row.to_dict()
+                if lat_lng:
+                    new_row['lat'] = lat_lng[0]
+                    new_row['lng'] = lat_lng[1]
+                else:
+                    new_row['lat'] = None
+                    new_row['lng'] = None
+                    
+                new_row['review'] = review_text  # Add review text
+                new_row['rating'] = review_rating  # Add review rating
+                list.append(new_row)
+        else:
+            new_row = row.to_dict()
+            if lat_lng:
+                new_row['lat'] = lat_lng[0]
+                new_row['lng'] = lat_lng[1]
+            else:
+                new_row['lat'] = None
+                new_row['lng'] = None
+                
+            new_row['review'] = None
+            new_row['rating'] = None
+            list.append(new_row)
+
+    new_df = pd.DataFrame(list)
+    new_df = new_df[new_df['review'].notna() & new_df['review'].ne('')]
+
+    return new_df
+
+
