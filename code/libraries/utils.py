@@ -972,7 +972,7 @@ def wer(reference, hypothesis):
     return wer
 
 
-def computer_WER(reference, prediction):
+def compute_WER(reference, prediction):
     '''
     TODO: ADD DESCRIPTION
     '''
