@@ -628,6 +628,8 @@ def translate(df, text_colname: str, translation_colname: str, model_name: str="
 
 def get_reviews(gmaps, search_input):
     '''
+    Author: Veron Hoxha
+         
     TODO: ADD DESCRIPTION
     '''
     try:
@@ -636,7 +638,7 @@ def get_reviews(gmaps, search_input):
             place_id = place_result['candidates'][0]['place_id']
             place_details = gmaps.place(place_id=place_id)
             reviews = place_details['result'].get('reviews', [])
-            return [(review['text'], review.get('rating')) for review in reviews]
+            return [(review.get('author_name'), review['text'], review.get('rating')) for review in reviews]
         else:
             return None
     except Exception as e:
@@ -645,6 +647,8 @@ def get_reviews(gmaps, search_input):
     
 def review_finder(gmaps, df):
     '''
+    Author: Veron Hoxha
+    
     TODO: ADD DESCRIPTION
     '''
 
@@ -674,7 +678,7 @@ def review_finder(gmaps, df):
         
         if reviews:
             for review in reviews:
-                review_text, review_rating = review 
+                review_author, review_text, review_rating = review 
                 new_row = row.to_dict()
                 if lat_lng:
                     new_row['lat'] = lat_lng[0]
@@ -683,8 +687,9 @@ def review_finder(gmaps, df):
                     new_row['lat'] = None
                     new_row['lng'] = None
                     
-                new_row['review'] = review_text  # Add review text
-                new_row['rating'] = review_rating  # Add review rating
+                new_row['author'] = review_author  # add author of text
+                new_row['review'] = review_text  # add review text
+                new_row['rating'] = review_rating  # add review rating
                 list.append(new_row)
         else:
             new_row = row.to_dict()
@@ -694,14 +699,13 @@ def review_finder(gmaps, df):
             else:
                 new_row['lat'] = None
                 new_row['lng'] = None
-                
+            
+            new_row['author'] = None
             new_row['review'] = None
             new_row['rating'] = None
             list.append(new_row)
-
+        
     new_df = pd.DataFrame(list)
     new_df = new_df[new_df['review'].notna() & new_df['review'].ne('')]
 
     return new_df
-
-
