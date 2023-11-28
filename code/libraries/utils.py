@@ -22,9 +22,14 @@ from selenium.common.exceptions import NoSuchElementException
 from emoji import UNICODE_EMOJI
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
+# Calculating IAA
+import krippendorff
+
+
 # OTHERS
 from tqdm import tqdm
 from geopy.distance import geodesic
+from IPython.display import display
 from IPython.display import clear_output
 
 
@@ -712,3 +717,138 @@ def review_finder(gmaps, df):
     new_df = new_df[new_df['review'].notna() & new_df['review'].ne('')]
 
     return new_df
+
+def fleiss_kappa(annotations, categories, labels):
+    '''
+    Author: Gino F. Fazzi
+    
+    TODO: ADD DESCRIPTION
+    Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa)
+    '''
+    
+    # filitering annotations to include those ID's which are repeated 5 times
+    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
+    overlapping_IDs = filtered_annotations["ID"].unique()
+
+    if len(overlapping_IDs) < 2:
+        raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
+
+    agreement_table = []
+
+    # Look at each review ID
+    for id in overlapping_IDs:
+        # (We need to keep a list for each row)
+        _ = []
+        # Look at each category for that review
+        for cat in categories:
+            # Look at each potential label for the review and category
+            for label in labels:
+                # Count number of agreements
+                subset = annotations.loc[annotations.ID == id, cat]
+                n = len(subset[subset == label])
+                # Append the agreement count to the row
+                _.append(n)
+        # Append the row to the table
+        agreement_table.append(_)
+
+    # Create the table
+    agreement_table = pd.DataFrame(agreement_table)
+
+    ### Find Pi vectors
+    # Apply exponent to each element and sum across rows
+    Pi = np.mean((agreement_table.apply(lambda x: x**2).sum(axis=1) - agreement_table.sum(axis=1)) / (agreement_table.sum(axis=1)*(agreement_table.sum(axis=1)-1)))
+
+    # Calculate P expected
+    Pe = sum((agreement_table.sum() / agreement_table.sum().sum()) **2)
+
+    # Final Kappa
+    k = (Pi - Pe)/(1 - Pe)
+
+    return k
+
+def krippendorff_alpha(annotations, categories):
+    '''
+    Author: Veron Hoxha
+    
+    TODO: ADD DESCRIPTION
+    
+    Calculating Krippendorff's Alpha for IAA (based on https://en.wikipedia.org/wiki/Krippendorff%27s_alpha) by using the python "krippendorff" library
+    '''
+    
+    # finding the number of annotators
+    max_ratings = max(annotations.groupby("ID").count().max())
+    # total number of ratings in one row (5 * 5 = 25) - 5 annotators and 5 categories
+    total_ratings_per_item = max_ratings * len(categories)
+
+    # filitering annotations to include those ID's which are repeated 5 times
+    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
+    overlapping_IDs = filtered_annotations["ID"].unique()
+
+    if len(overlapping_IDs) < 2:
+        raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
+
+    data_matrix = []
+    
+    # look at each review ID
+    for id in overlapping_IDs:
+        group = annotations[annotations['ID'] == id]
+        row = []
+        
+        for category in categories:
+            # if any annotator did not rate in this category for this item, append nan
+            ratings = group[category].tolist() + [np.nan] * (max_ratings - group[category].count())
+            row.extend(ratings)
+
+        # ensure each row length equals the total number of possible ratings per item
+        row = row[:total_ratings_per_item]
+        data_matrix.append(row)
+
+    # matrix where each row is an item and each column is an annotator's rating
+    data_matrix = np.array(data_matrix, dtype=float)
+    alpha = krippendorff.alpha(reliability_data=data_matrix, level_of_measurement='ordinal')
+    
+    return alpha 
+
+
+### Calculating Krippendorff's Alpha seperatly for each category
+
+def krippendorff_alpha_per_category(annotations, categories):
+    '''
+    Author: Veron Hoxha
+    
+    TODO: ADD DESCRIPTION
+    
+    Calculating Krippendorff's Alpha seperatly for each category (based on https://en.wikipedia.org/wiki/Krippendorff%27s_alpha) by using the python "krippendorff" library
+    '''
+    
+    # finding the number of annotators
+    max_ratings = max(annotations.groupby("ID").count().max())
+    
+    # filitering the annotations which are not repeated 5 times
+    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
+    overlapping_IDs = filtered_annotations["ID"].unique()
+
+    if len(overlapping_IDs) < 2:
+        raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
+
+    category_alphas = {}
+    
+    # iterating over each category to calculate Krippendorff's alpha separately
+    for category in categories:
+        data_matrix = []
+        
+        # look at each review ID
+        for id in overlapping_IDs:
+            group = annotations[annotations['ID'] == id]
+            ratings = group[category].tolist()
+
+            # appending NaNs to ensure that each item's ratings list has the same length
+            ratings += [np.nan] * (max_ratings - len(ratings))
+            data_matrix.append(ratings)
+
+        data_matrix = np.array(data_matrix, dtype=float)
+        # calculating Krippendorff's alpha for the current category and store it
+        alpha = krippendorff.alpha(reliability_data=data_matrix, level_of_measurement='ordinal')
+        category_alphas[category] = alpha
+
+    return category_alphas

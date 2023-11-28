@@ -46,6 +46,9 @@ def krippendorff_alpha(annotations, categories):
 ### Calculating Krippendorff's Alpha seperatly for each category
 
 def krippendorff_alpha_per_category(annotations, categories):
+    '''
+     Calculating Krippendorff's Alpha seperatly for each category (based on https://en.wikipedia.org/wiki/Krippendorff%27s_alpha) by using the python "krippendorff" library
+    '''
     
     # finding the number of annotators
     max_ratings = max(annotations.groupby("ID").count().max())
