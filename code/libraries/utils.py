@@ -620,6 +620,9 @@ def translate(df, text_colname: str, translation_colname: str, model_name: str="
         
         translations.append(translated_text)
 
+    # For showing progress
+    print(f"{ix / len(df):.2%} - FINISHED!")
+    
     # Append to dataset
     df[translation_colname] = translations
 
