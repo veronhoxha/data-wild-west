@@ -2,13 +2,14 @@
 import numpy as np
 import pandas as pd
 
-
 def fleiss_kappa(annotations, categories, labels):
     '''
     Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa)
     '''
-    # Extract the subset of overlapping annotations used to calculate the IAA
-    overlapping_IDs = annotations[annotations.duplicated(subset="ID", keep=False)].drop_duplicates()["ID"]
+    
+    # filitering annotations to include those ID's which are repeated 5 times
+    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
+    overlapping_IDs = filtered_annotations["ID"].unique()
 
     if len(overlapping_IDs) < 2:
         raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
