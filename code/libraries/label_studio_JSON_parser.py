@@ -31,6 +31,7 @@ def parse_file(filepath):
         reviews[row["id"]] = {}
         reviews[row["id"]]["ID"] = row["data"]["ID"]
         reviews[row["id"]]["text"] = row["data"]["text"]
+        reviews[row["id"]]["annotator"] = row["file_upload"]
         
         # For each annotation of the instance
         for a in row["annotations"]:
