@@ -30,8 +30,6 @@ import sys;
 sys.path.append("./libraries/")
 from fleiss_kappa import fleiss_kappa
 from label_studio_JSON_parser import parse_file
-from krippendorffs_alpha import krippendorff_alpha
-from krippendorffs_alpha import krippendorff_alpha_per_category
 from fleiss_kappa_by_category import fleiss_kappa_by_category
 
 #### 
