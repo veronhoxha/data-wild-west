@@ -16,7 +16,7 @@ def krippendorff_alpha(annotations, categories):
     # filitering annotations to include those ID's which are repeated 5 times
     filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
     overlapping_IDs = filtered_annotations["ID"].unique()
-
+    
     if len(overlapping_IDs) < 2:
         raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
 
@@ -35,6 +35,7 @@ def krippendorff_alpha(annotations, categories):
         # ensure each row length equals the total number of possible ratings per item
         row = row[:total_ratings_per_item]
         data_matrix.append(row)
+        print(row)
 
     # matrix where each row is an item and each column is an annotator's rating
     data_matrix = np.array(data_matrix, dtype=float)
