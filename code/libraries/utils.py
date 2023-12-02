@@ -950,6 +950,9 @@ def compute_WER(reference, hypothesis):
     Returns:
     - wer: Word Error Rate
     """
+    # We lowercase everything to avoid errors solely based in caseing
+    reference = reference.lower()
+    hypothesis = hypothesis.lower()
     # Create a matrix to store the minimum edit distances
     distance_matrix = [[0] * (len(hypothesis) + 1) for _ in range(len(reference) + 1)]
 
@@ -1001,6 +1004,9 @@ class WER:
         for ix in range(len(self.texts)):
             # Show progress
             self.WERs.append((self.texts[ix], self.references[ix], self.predictions[ix], compute_WER(self.references[ix], self.predictions[ix])))
+
+        self._ranking = pd.DataFrame(self.WERs, columns=["Text", "Human", "Machine", "WER"])
+        self._ranking.sort_values("WER", ascending=False, inplace=True)
         
     def mean(self):
 
@@ -1010,11 +1016,27 @@ class WER:
 
     def ranking(self, how="full"):
         assert how in ["top", "bottom", "full"], print("How argument must be either top, bottom, both or full")
-        ranking = pd.DataFrame(self.WERs, columns=["Text", "Human", "Machine", "WER"])
-        ranking.sort_values("WER", ascending=False, inplace=True)
+
         if how=="full":
-            return ranking
+            return self._ranking
         elif how=="top":
-            return ranking.head()
+            return self._ranking.head()
         else:
-            return ranking.tail()
+            return self._ranking.tail()
+
+
+def num_to_sent(x):
+    '''
+    Author: Gino F. Fazzi
+
+    Custom function to map numerical-encoded sentiments to human-readable labels.
+    '''
+    if x == 1.0:
+        return "Positive"
+    elif x == 0.0:
+        return "Neutral"
+    elif x == -1.0:
+        return "Negative"
+    else:
+        return "None"
+        
