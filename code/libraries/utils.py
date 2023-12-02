@@ -24,6 +24,9 @@ from emoji import UNICODE_EMOJI
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from nltk.translate.bleu_score import corpus_bleu
 
+# Calculating IAA
+import krippendorff
+
 # OTHERS
 from tqdm import tqdm
 from geopy.distance import geodesic
@@ -721,11 +724,10 @@ def fleiss_kappa(annotations, categories, labels):
     Author: Gino F. Fazzi
     
     TODO: ADD DESCRIPTION
-    
     Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa)
     '''
     
-       # filitering annotations to include those ID's which are repeated 5 times
+    # filitering annotations to include those ID's which are repeated 5 times
     filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
     overlapping_IDs = filtered_annotations["ID"].unique()
 
@@ -734,83 +736,128 @@ def fleiss_kappa(annotations, categories, labels):
 
     agreement_table = []
 
-    # look at each review ID
+    # Look at each review ID
     for id in overlapping_IDs:
-        # (we need to keep a list for each row)
+        # (We need to keep a list for each row)
         _ = []
-        # look at each category for that review
+        # Look at each category for that review
         for cat in categories:
-            # look at each potential label for the review and category
+            # Look at each potential label for the review and category
             for label in labels:
-                # count number of agreements
+                # Count number of agreements
                 subset = annotations.loc[annotations.ID == id, cat]
-                n = len(subset[subset == label])
-                # append the agreement count to the row
+                if np.isnan(label):
+                    n = len(subset[subset.isna()])
+                else:
+                    n = len(subset[subset == label])
+                # Append the agreement count to the row
                 _.append(n)
-        # append the row to the table
+        # Append the row to the table
         agreement_table.append(_)
 
-    # create the table
+    # Create the table
     agreement_table = pd.DataFrame(agreement_table)
 
-    ### find Pi vectors
-    # apply exponent to each element and sum across rows
+    ### Find Pi vectors
+    # Apply exponent to each element and sum across rows
     Pi = np.mean((agreement_table.apply(lambda x: x**2).sum(axis=1) - agreement_table.sum(axis=1)) / (agreement_table.sum(axis=1)*(agreement_table.sum(axis=1)-1)))
 
-    # calculate P expected
+    # Calculate P expected
     Pe = sum((agreement_table.sum() / agreement_table.sum().sum()) **2)
 
-    # calculate final kappa
+    # Final Kappa
     k = (Pi - Pe)/(1 - Pe)
 
     return k
 
-def fleiss_kappa_by_category(annotations, categories, labels):
-    ''' 
+
+def krippendorff_alpha(annotations, categories):
+    '''
     Author: Veron Hoxha
     
     TODO: ADD DESCRIPTION
-
-    Custom function to calculate Fleiss' Kappa for IAA for each category separately (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa).
+    
+    Calculating Krippendorff's Alpha for IAA (based on https://en.wikipedia.org/wiki/Krippendorff%27s_alpha) by using the python "krippendorff" library
     '''
     
+    # finding the number of annotators
+    max_ratings = max(annotations.groupby("ID").count().max())
+    # total number of ratings in one row (5 * 5 = 25) - 5 annotators and 5 categories
+    total_ratings_per_item = max_ratings * len(categories)
+
     # filitering annotations to include those ID's which are repeated 5 times
     filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
     overlapping_IDs = filtered_annotations["ID"].unique()
-    
+
     if len(overlapping_IDs) < 2:
         raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
 
-    kappa_values = {}
+    data_matrix = []
+    
+    # look at each review ID
+    for id in overlapping_IDs:
+        group = annotations[annotations['ID'] == id]
+        row = []
+        
+        for category in categories:
+            # if any annotator did not rate in this category for this item, append nan
+            ratings = group[category].tolist() + [np.nan] * (max_ratings - group[category].count())
+            row.extend(ratings)
 
-    # look at each category for that review
+        # ensure each row length equals the total number of possible ratings per item
+        row = row[:total_ratings_per_item]
+        data_matrix.append(row)
+
+    # matrix where each row is an item and each column is an annotator's rating
+    data_matrix = np.array(data_matrix, dtype=float)
+    alpha = krippendorff.alpha(reliability_data=data_matrix, level_of_measurement='ordinal')
+    
+    return alpha 
+
+
+### Calculating Krippendorff's Alpha seperatly for each category
+
+def krippendorff_alpha_per_category(annotations, categories):
+    '''
+    Author: Veron Hoxha
+    
+    TODO: ADD DESCRIPTION
+    
+    Calculating Krippendorff's Alpha seperatly for each category (based on https://en.wikipedia.org/wiki/Krippendorff%27s_alpha) by using the python "krippendorff" library
+    '''
+    
+    # finding the number of annotators
+    max_ratings = max(annotations.groupby("ID").count().max())
+    
+    # filitering the annotations which are not repeated 5 times
+    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
+    overlapping_IDs = filtered_annotations["ID"].unique()
+
+    if len(overlapping_IDs) < 2:
+        raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
+
+    category_alphas = {}
+    
+    # iterating over each category to calculate Krippendorff's alpha separately
     for category in categories:
-        agreement_table = []
-
+        data_matrix = []
+        
         # look at each review ID
         for id in overlapping_IDs:
-            row = []
-            # look at each potential label for the review and category
-            for label in labels:
-                # count number of agreements
-                subset = filtered_annotations[filtered_annotations["ID"] == id]
-                n = len(subset[subset[category] == label])
-                row.append(n)
-            # append the row to the table
-            agreement_table.append(row)
+            group = annotations[annotations['ID'] == id]
+            ratings = group[category].tolist()
 
-        # create the table for this category
-        agreement_table = pd.DataFrame(agreement_table)
-        
-        # calculate Pi and Pe for each category
-        Pi = np.mean((agreement_table.apply(lambda x: x**2).sum(axis=1) - agreement_table.sum(axis=1)) / (agreement_table.sum(axis=1)*(agreement_table.sum(axis=1)-1)))
-        Pe = sum((agreement_table.sum() / agreement_table.sum().sum()) **2)
+            # appending NaNs to ensure that each item's ratings list has the same length
+            ratings += [np.nan] * (max_ratings - len(ratings))
+            data_matrix.append(ratings)
 
-        # final Kappa for this category
-        kappa = (Pi - Pe)/(1 - Pe)
-        kappa_values[category] = kappa
+        data_matrix = np.array(data_matrix, dtype=float)
+        # calculating Krippendorff's alpha for the current category and store it
+        alpha = krippendorff.alpha(reliability_data=data_matrix, level_of_measurement='ordinal')
+        category_alphas[category] = alpha
 
-    return kappa_values
+    return category_alphas
+
 
 def parse_label_studio_file(filepath):
     '''
@@ -892,7 +939,7 @@ def compute_BLEU(references, translations):
     return bleu_scores, cumulative_bleu
 
 
-def wer(reference, hypothesis):
+def compute_WER(reference, hypothesis):
     """
     Calculate Word Error Rate (WER) between reference and translation.
 
@@ -929,21 +976,45 @@ def wer(reference, hypothesis):
     return wer
 
 
-def compute_WER(reference, prediction):
+class WER:
     '''
-    TODO: ADD DESCRIPTION
+    Author: Gino F. Fazzi
+
+    Class to compute Word Error Rate between reference translations (human) and predictions (machine).
+    It calculate some metrics like average WER for all instances, and provides ranking of best and worst instances
+    for inspection.
     '''
-    # We first make sure the shapes are equal
-    assert len(reference) == len(prediction), print("WARNING: Reference and Predictions array should have the same length.")
+    def __init__(self, texts: list, references: list, predictions: list):
+        # We first make sure the shapes are equal
+        assert len(texts) == len(references) and len(references) == len(predictions), print("WARNING: Reference and Predictions array should have the same length.")
+        self.texts = texts
+        self.references = references
+        self.predictions = predictions
+        self.n = len(self.references)
+        pass
 
-    # Acumulated WER score
-    acum_WER = 0
 
-    # For each review
-    for ix in range(len(reference)):
-        # Show progress
+    def __compute(self):
+        # Container
+        self.WERs = []
+        # For each review
+        for ix in range(len(self.texts)):
+            # Show progress
+            self.WERs.append((self.texts[ix], self.references[ix], self.predictions[ix], compute_WER(self.references[ix], self.predictions[ix])))
+        
+    def mean(self):
 
-        acum_WER += wer(reference[ix], prediction[ix])
+        self.__compute()
+        return sum([x[3] for x in self.WERs]) / self.n
 
-    # Return the average WER score
-    return acum_WER / len(reference)
+
+    def ranking(self, how="full"):
+        assert how in ["top", "bottom", "full"], print("How argument must be either top, bottom, both or full")
+        ranking = pd.DataFrame(self.WERs, columns=["Text", "Human", "Machine", "WER"])
+        ranking.sort_values("WER", ascending=False, inplace=True)
+        if how=="full":
+            return ranking
+        elif how=="top":
+            return ranking.head()
+        else:
+            return ranking.tail()
