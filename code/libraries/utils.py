@@ -20,9 +20,15 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 # NLP
+import nltk
 from emoji import UNICODE_EMOJI
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from nltk.translate.bleu_score import corpus_bleu
+from textblob import TextBlob, Word
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+nltk.download('wordnet', quiet=True)
+nltk.download('omw-1.4', quiet=True)
 
 # Calculating IAA
 import krippendorff
@@ -1040,3 +1046,16 @@ def num_to_sent(x):
     else:
         return "None"
         
+
+def lemmatize_with_postag(sentence):
+    '''
+    Function to lemmatize each word with its POS tag.
+    '''
+    sent = TextBlob(sentence)
+    tag_dict = {"J": 'a', 
+                "N": 'n', 
+                "V": 'v', 
+                "R": 'r'}
+    words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]    
+    lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
+    return " ".join(lemmatized_list)
