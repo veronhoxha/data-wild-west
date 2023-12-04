@@ -733,9 +733,7 @@ def fleiss_kappa(annotations, categories, labels):
     Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa)
     '''
     
-    # filitering annotations to include those ID's which are repeated 5 times
-    filtered_annotations = annotations.groupby("ID").filter(lambda x: len(x) == 5)
-    overlapping_IDs = filtered_annotations["ID"].unique()
+    overlapping_IDs = annotations["ID"].unique()
 
     if len(overlapping_IDs) < 2:
         raise Exception("We need at least 2 overlapping annotations to calculate IAA.")
@@ -1059,3 +1057,26 @@ def lemmatize_with_postag(sentence):
     words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]    
     lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
     return " ".join(lemmatized_list)
+
+
+
+def get_rating_average(google_reviews):
+    '''
+    TODO: ADD DESCRIPTION
+    # calculating the average rating
+    '''
+    type_avg_ratings  = google_reviews.groupby(['lat','lng'])['rating'].mean().to_dict()
+    
+    # choosing the color of the marker based on the average rating
+    def get_color_for_type(lat, lng):
+        avg_rating = type_avg_ratings.get((lat, lng), 0)
+        if avg_rating >= 4:
+            return 'green'
+        elif avg_rating >= 2:
+            return 'orange'
+        else:
+            return 'red'
+        
+    
+    return get_color_for_type
+
