@@ -36,6 +36,9 @@ from geopy.distance import geodesic
 from IPython.display import display
 from IPython.display import clear_output
 
+# MAPS
+import folium
+
 
 def day_schedule_periods(weekday_text):
     '''
@@ -1008,3 +1011,68 @@ def get_rating_average(data):
             return 'red'
 
     return get_color_for_type
+
+
+def add_kbh_markers(grouped_data, kbh_grouping_field, marker_cluster):
+    '''
+    Author: Veron Hoxha
+    
+    TODO: ADD DESCRIPTION
+    '''
+    
+    get_color = get_rating_average(grouped_data, kbh_grouping_field)
+    
+    for index, row in grouped_data.iterrows():
+        lat, lng = row['lat'], row['lng']
+        
+        if lat is None or lng is None:
+            continue
+        try:
+            
+            lat_float = float(lat)
+            lng_float = float(lng)
+            
+            color = get_color(row[kbh_grouping_field])
+            icon = get_icon(row['type'])
+            popup_content = f"Activity: {row['activity']}<br> Location: {row[kbh_grouping_field]}<br> Rating: {row['rating']}"
+            marker_cluster.add_child(
+                folium.Marker(
+                    location=[lat_float, lng_float],
+                    popup=popup_content,
+                    icon=folium.Icon(color=color, icon=icon, prefix='fa')
+                )
+            )
+        except ValueError:
+            continue
+
+def add_google_markers(grouped_data, marker_cluster):
+    '''
+    Author: Veron Hoxha
+    
+    TODO: ADD DESCRIPTION
+    
+    '''
+    get_color = get_rating_average(grouped_data, ('lat', 'lng'))
+    
+    for index, row in grouped_data.iterrows():
+        
+        lat, lng = row['lat'], row['lng']
+        
+        if lat is None or lng is None:
+            continue
+        try:
+            
+            lat_float = float(lat)
+            lng_float = float(lng)
+            
+            color = get_color(lat_float, lng_float)
+            popup_content = f"Type: {row['type']}<br> Rating: {row['rating']}"
+            marker_cluster.add_child(
+                folium.Marker(
+                    location=[lat_float, lng_float],
+                    popup=popup_content,
+                    icon=folium.Icon(color=color, icon="dumbbell", prefix='fa')
+                )
+            )
+        except ValueError:
+            continue
