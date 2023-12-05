@@ -992,16 +992,20 @@ def get_icon(activity_type):
     return icons.get(activity_type, "question-sign")
 
 
-def get_rating_average(data, grouping_field):
+def get_rating_average(data, lat_field, lng_field):
     '''
     Author: Veron Hoxha
     
     TODO: ADD DESCRIPTION
     '''
-    avg_rating_dict = data.groupby(grouping_field)['rating'].mean().to_dict()
+    
+    data['lat_lng'] = data[[lat_field, lng_field]].apply(tuple, axis=1)
 
-    def get_color_for_location(key):
-        avg_rating = avg_rating_dict.get(key, 0)
+    avg_rating_dict = data.groupby('lat_lng')['rating'].mean().to_dict()
+
+    def get_color_for_location(lat, lng):
+        lat_lng = (lat, lng)
+        avg_rating = avg_rating_dict.get(lat_lng, 0)
         if avg_rating >= 4:
             return 'green'
         elif avg_rating >= 2:
@@ -1012,14 +1016,14 @@ def get_rating_average(data, grouping_field):
     return get_color_for_location
 
 
-def add_kbh_markers(grouped_data, kbh_grouping_field, marker_cluster):
+def add_kbh_markers(grouped_data, marker_cluster):
     '''
     Author: Veron Hoxha
     
     TODO: ADD DESCRIPTION
     '''
     
-    get_color = get_rating_average(grouped_data, kbh_grouping_field)
+    get_color = get_rating_average(grouped_data, 'lat', 'lng')
     
     for index, row in grouped_data.iterrows():
         lat, lng = row['lat'], row['lng']
@@ -1027,13 +1031,12 @@ def add_kbh_markers(grouped_data, kbh_grouping_field, marker_cluster):
         if lat is None or lng is None:
             continue
         try:
-            
             lat_float = float(lat)
             lng_float = float(lng)
             
-            color = get_color(row[kbh_grouping_field])
+            color = get_color(lat_float, lng_float)
             icon = get_icon(row['type'])
-            popup_content = f"Activity: {row['activity']}<br> Location: {row[kbh_grouping_field]}<br> Rating: {row['rating']}"
+            popup_content = f"Type: {row['activity']}<br> Rating: {row['rating']}"
             marker_cluster.add_child(
                 folium.Marker(
                     location=[lat_float, lng_float],
@@ -1044,6 +1047,7 @@ def add_kbh_markers(grouped_data, kbh_grouping_field, marker_cluster):
         except ValueError:
             continue
 
+
 def add_google_markers(grouped_data, marker_cluster):
     '''
     Author: Veron Hoxha
@@ -1051,7 +1055,8 @@ def add_google_markers(grouped_data, marker_cluster):
     TODO: ADD DESCRIPTION
     
     '''
-    get_color = get_rating_average(grouped_data, ('lat', 'lng'))
+    
+    get_color = get_rating_average(grouped_data, 'lat', 'lng')
     
     for index, row in grouped_data.iterrows():
         
