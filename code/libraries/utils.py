@@ -969,7 +969,6 @@ def lemmatize_with_postag(sentence):
     lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
     return " ".join(lemmatized_list)
 
-
 def get_icon(activity_type):
     '''
     Author: Veron Hoxha
@@ -992,17 +991,17 @@ def get_icon(activity_type):
     
     return icons.get(activity_type, "question-sign")
 
-def get_rating_average(data):
+
+def get_rating_average(data, grouping_field):
     '''
     Author: Veron Hoxha
     
     TODO: ADD DESCRIPTION
     '''
-    type_avg_ratings  = data.groupby(['lat','lng'])['rating'].mean().to_dict()
-    
-    # choosing the color of the marker based on the average rating
-    def get_color_for_type(lat, lng):
-        avg_rating = type_avg_ratings.get((lat, lng), 0)
+    avg_rating_dict = data.groupby(grouping_field)['rating'].mean().to_dict()
+
+    def get_color_for_location(key):
+        avg_rating = avg_rating_dict.get(key, 0)
         if avg_rating >= 4:
             return 'green'
         elif avg_rating >= 2:
@@ -1010,7 +1009,7 @@ def get_rating_average(data):
         else:
             return 'red'
 
-    return get_color_for_type
+    return get_color_for_location
 
 
 def add_kbh_markers(grouped_data, kbh_grouping_field, marker_cluster):
