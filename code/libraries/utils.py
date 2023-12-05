@@ -989,20 +989,17 @@ def get_icon(activity_type):
     
     return icons.get(activity_type, "question-sign")
 
-def get_rating_average(data, grouping_field):
+def get_rating_average(data):
     '''
     Author: Veron Hoxha
     
     TODO: ADD DESCRIPTION
     '''
-    # handle grouping by a tuple of columns
-    if isinstance(grouping_field, tuple):
-        avg_rating_dict = data.groupby(list(grouping_field))['rating'].mean().to_dict()
-    else:
-        avg_rating_dict = data.groupby(grouping_field)['rating'].mean().to_dict()
-
-    def get_color_for_location(key):
-        avg_rating = avg_rating_dict.get(key, 0)
+    type_avg_ratings  = data.groupby(['lat','lng'])['rating'].mean().to_dict()
+    
+    # choosing the color of the marker based on the average rating
+    def get_color_for_type(lat, lng):
+        avg_rating = type_avg_ratings.get((lat, lng), 0)
         if avg_rating >= 4:
             return 'green'
         elif avg_rating >= 2:
@@ -1010,4 +1007,4 @@ def get_rating_average(data, grouping_field):
         else:
             return 'red'
 
-    return get_color_for_location
+    return get_color_for_type
