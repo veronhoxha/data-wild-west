@@ -1,21 +1,22 @@
-### Data Wild West - Project Structure
+# Data Wild West - Project Structure
 
 This repository contains all the necessary code and resources to reproduce the Data Wild West group project. 
 
 Below is an overview of the key components and their organization:
 
-# Code
+### Code
 Located in the "code" folder:
 
     1) Project_Notebook.ipynb: The main Jupyter Notebook where all the analyses are performed.
-    2) libraries/utils.py: This file, located in the libraries subfolder, contains all the functions utilized in Project_Notebook.ipynb.
+    2) libraries/utils.py: This file, located in the libraries subfolder, 
+    contains all the functions utilized in Project_Notebook.ipynb.
 
-# Data
+### Data
 Located in the "data" folder:
 
     1) This directory houses both the raw and processed data utilized in the project.
 
-# Additional Folders
+### Additional Folders
     1) "images": Contains images used in the report.
     2) "translations": This folder includes any translation files related to the project.
     3) "visualizations": Here, you will find visual representations and output generated during the project.
@@ -25,7 +26,7 @@ Each folder is structured to provide a clear and organized workflow, ensuring ea
 
 
 
-# Important what README.MD should contain
+### Important what README.MD should contain
 
 README.MD with description of the data, what all the files do - should be usable for another KDS or CS student
 
@@ -39,5 +40,4 @@ Project hand-in:
     - code/scripts you used for processing, analysis
     - should reproduce the tables/figures in your report
     - with comments, consistent variable naming, etc.
-    - README.MD with description of the data, what all the files do - should be
-    usable for another KDS or CS student
+    - README.MD with description of the data, what all the files do - should be usable for another KDS or CS student
