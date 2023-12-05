@@ -7,8 +7,8 @@ Below is an overview of the key components and their organization:
 ### Code
 Located in the **"code"** folder:
 
-    - **Project_Notebook.ipynb**: The main Jupyter Notebook where all the analyses are performed.
-    - **libraries/utils.py**: This file, located in the libraries subfolder, 
+    - Project_Notebook.ipynb: The main Jupyter Notebook where all the analyses are performed.
+    - libraries/utils.py: This file, located in the libraries subfolder, 
     contains all the functions utilized in Project_Notebook.ipynb.
 
 ### Data
@@ -17,10 +17,10 @@ Located in the **"data"** folder:
     - This directory houses both the raw and processed data utilized in the project.
 
 ### Additional Folders
-    - **"images"**: Contains images used in the report.
-    - **"translations"**: This folder includes any translation files related to the project.
-    - **"visualizations"**: Here, you will find visual representations and output generated during the project.
-    - **"annotations"**: Contains annotations results, samples and the guideline.
+    - "images": Contains images used in the report.
+    - "translations": This folder includes any translation files related to the project.
+    - "visualizations": Here, you will find visual representations and output generated during the project.
+    - "annotations": Contains annotations results, samples and the guideline.
 
 Each folder is structured to provide a clear and organized workflow, ensuring easy navigation and replication of the project's results.
 
