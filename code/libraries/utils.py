@@ -1113,14 +1113,14 @@ def grammar_corrector(text:str) -> str:
         for _, word in enumerate(words):
             # Check if the word contains a numeric character
             has_numeric = any(char.isdigit() for char in word)
-            
+
             if has_numeric:
                 # If the word contains a numeric character, keep the original word
                 corrected_word = word
             else:
                 # If the word does not contain a numeric character, perform correction
-                corrected_word = sym_spell.lookup(word.lower(), Verbosity.CLOSEST, max_edit_distance=2)
-                corrected_word = corrected_word[0].term if corrected_word else corrected_word
+                corrected_word = sym_spell.lookup(word.lower(), u.Verbosity.CLOSEST, max_edit_distance=2)
+                corrected_word = corrected_word[0].term if corrected_word and corrected_word[0] else word
 
             # Append the punctuation back to the corrected word if the original word had it
             if word[-1] in ['!', '?', '.']:
@@ -1133,7 +1133,6 @@ def grammar_corrector(text:str) -> str:
                 temp_line.append(' ')
 
         cleaned_text.append(''.join(map(str, temp_line)))
-       
 
     if isinstance(text, str):
         return cleaned_text[0]  # Return the corrected string.
