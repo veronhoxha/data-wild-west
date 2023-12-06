@@ -969,11 +969,18 @@ def lemmatize_with_postag(sentence):
     lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
     return " ".join(lemmatized_list)
 
+
 def get_icon(activity_type):
     '''
     Author: Veron Hoxha
     
-    TODO: ADD DESCRIPTION
+    Returns an icon based on the activity type.
+    
+    Parameters:
+        - activity_type: The type of activity to get the icon for.
+        
+    Returns: 
+        - str: The name of the icon associated with the given activity type.
     '''
     
     icons = {
@@ -996,7 +1003,15 @@ def get_rating_average(data, lat_field, lng_field):
     '''
     Author: Veron Hoxha
     
-    TODO: ADD DESCRIPTION
+    Computes the average rating for each location/address in the data and returns a function to determine the color coding based on this average rating.
+    
+    Parameters:
+        - data: The DataFrame containing ratings and location data.
+        - lat_field: The name of the column in 'data' representing latitude.
+        - lng_field: The name of the column in 'data' representing longitude.
+        
+    Retruns:
+        - function: A function that takes latitude and longitude as input and returns a color.
     '''
     
     data['lat_lng'] = data[[lat_field, lng_field]].apply(tuple, axis=1)
@@ -1020,7 +1035,14 @@ def add_kbh_markers(grouped_data, marker_cluster):
     '''
     Author: Veron Hoxha
     
-    TODO: ADD DESCRIPTION
+    Adds customized markers to a Folium map based on data provided in 'grouped_data'.
+
+    Parameters:
+        - grouped_data: Data with latitude, longitude, activity, and rating columns.
+        - marker_cluster: The marker cluster object to add markers to.
+    
+    Returns:
+        - None: This function does not return a value, it modifies `marker_cluster` in place.
     '''
     
     get_color = get_rating_average(grouped_data, 'lat', 'lng')
@@ -1052,8 +1074,14 @@ def add_google_markers(grouped_data, marker_cluster):
     '''
     Author: Veron Hoxha
     
-    TODO: ADD DESCRIPTION
+    Adds customized markers to a Folium map based on data provided in 'grouped_data'.
+
+    Parameters:
+        - grouped_data: Data with latitude, longitude, type, and rating columns.
+        - marker_cluster: The marker cluster object to add markers to.
     
+    Returns:
+        - None: This function does not return a value, it modifies `marker_cluster` in place.
     '''
     
     get_color = get_rating_average(grouped_data, 'lat', 'lng')
