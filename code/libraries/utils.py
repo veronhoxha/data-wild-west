@@ -25,10 +25,16 @@ from emoji import UNICODE_EMOJI
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from nltk.translate.bleu_score import corpus_bleu
 from textblob import TextBlob, Word
+import pkg_resources
+import symspellpy
+from symspellpy import SymSpell, Verbosity
 nltk.download('punkt', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 nltk.download('wordnet', quiet=True)
 nltk.download('omw-1.4', quiet=True)
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+dictionary_path = pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt")
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
 
 # OTHERS
 from tqdm import tqdm
@@ -38,6 +44,10 @@ from IPython.display import clear_output
 
 # MAPS
 import folium
+
+# Warnings
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pkg_resources")
 
 
 def day_schedule_periods(weekday_text):
@@ -1080,3 +1090,52 @@ def add_google_markers(grouped_data, marker_cluster):
             )
         except ValueError:
             continue
+
+
+def grammar_corrector(text:str) -> str:
+    """
+    Corrects spelling and grammar in the given text.
+
+    Args:
+        text (str or list): The input text to be corrected. It can be a single string or a list of strings.
+
+    Returns:
+        str or list: The corrected text, with spelling and grammar issues fixed.
+    """
+    cleaned_text = []
+
+    if isinstance(text, str):
+        text = [text]  # Convert a single string to a list of strings for consistency.
+
+    for line in text:
+        temp_line = []
+        words = line.split()
+        for _, word in enumerate(words):
+            # Check if the word contains a numeric character
+            has_numeric = any(char.isdigit() for char in word)
+            
+            if has_numeric:
+                # If the word contains a numeric character, keep the original word
+                corrected_word = word
+            else:
+                # If the word does not contain a numeric character, perform correction
+                corrected_word = sym_spell.lookup(word.lower(), Verbosity.CLOSEST, max_edit_distance=2)
+                corrected_word = corrected_word[0].term if corrected_word else corrected_word
+
+            # Append the punctuation back to the corrected word if the original word had it
+            if word[-1] in ['!', '?', '.']:
+                corrected_word += word[-1]
+
+            temp_line.append(corrected_word)
+
+            # Add space between words, except for the last word
+            if _ < len(words) - 1:
+                temp_line.append(' ')
+
+        cleaned_text.append(''.join(map(str, temp_line)))
+       
+
+    if isinstance(text, str):
+        return cleaned_text[0]  # Return the corrected string.
+    else:
+        return cleaned_text
