@@ -2,6 +2,7 @@
 ############ UTILS ############
 
 ### IMPORTS ###
+
 # BASICS
 from datetime import datetime
 import regex as re
@@ -45,22 +46,21 @@ from IPython.display import clear_output
 # MAPS
 import folium
 
-# Warnings
+# WARNINGS
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pkg_resources")
 
+###################################################################################################
 
 def day_schedule_periods(weekday_text):
     '''
-    Author: Constantin-Bogdan Craciun
-
     Converts and formats the opening and closing times of each day of the week from a structured input.
     
-    Arguments:
-    - weekday_text (list): A list of dictionaries where each dictionary contains the open and close times for a specific day of the week, with each day represented as an integer.
+    Parameters:
+        - weekday_text: A list of dictionaries where each dictionary contains the open and close times for a specific day of the week, with each day represented as an integer.
 
     Returns:
-    - dict: A dictionary where each key is the name of a day of the week and the corresponding value is a string representing the formatted open and close times for that day, in 'HH:MM AM/PM' format.
+        - dict: A dictionary where each key is the name of a day of the week and the corresponding value is a string representing the formatted open and close times for that day, in 'HH:MM AM/PM' format.
     '''
     
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -78,22 +78,22 @@ def day_schedule_periods(weekday_text):
 
         day = weekday_text[i]['open']['day']
         some_d[days[day]] = formatted_time_open + " - " + formatted_time_close
+        
     return some_d
 
 
 def google_querier(gmaps, query_string):
     '''
-    Author: Constantin-Bogdan Craciun
-
     Function to submit a query to the Google Maps API.
     
-    Arguments:
-        - gmaps: API engine
-        - query_string: A string to submit to the API
+    Parameters:
+        - gmaps: API engine.
+        - query_string: A string to submit to the API.
      
      Returns:
-        - dataframe with all results containing reviews.
+        - response_list: Dataframe with all results containing reviews.
     '''
+    
     # Container for responses
     response_list = []
 
@@ -152,16 +152,14 @@ def google_querier(gmaps, query_string):
 
 def check_dataframe_results(df):
     '''
-    Author: Gino F. Fazzi
-    
     Simple function to check the resulting dataframe.
 
-    Arguments:
-     - df : Dataframe to summarize
+    Parameters:
+        - df: Dataframe to summarize.
 
-    Output:
-     - Prints dataframe shape and info.
-     - Displays the first 5 rows of data.
+    Returns:
+        - df.info(): Prints dataframe shape and info.
+        - df.head(): Displays the first 5 rows of data.
     '''
 
     print(f"Resulting dataframe has shape {df.shape}\n")
@@ -172,19 +170,18 @@ def check_dataframe_results(df):
 
 def google_nearby(gmaps, place_id: str, keys: list, location: dict, radius: int):
     '''
-    Author: Gino F. Fazzi (adapted from Veron Hoxha Notebook)
-
     Function to retrieve nearby businesses for a given location.
 
-    Arguments:
-     - place_id: Unique ID for the place of interest.
-     - key: The query string for Google Maps (e.g., the text one would normally input in the search box).
-     - location: A dictionary with lat, long as the center of the search.
-     - radius: The radius of search from the center location.
+    Parameters:
+        - place_id: Unique ID for the place of interest.
+        - key: The query string for Google Maps (e.g., the text one would normally input in the search box).
+        - location: A dictionary with lat, long as the center of the search.
+        - radius: The radius of search from the center location.
 
      Returns:
-      - DF with the resulting businesses.
+        - results: Dataframe with the resulting businesses.
     '''
+    
     # Results container
     results = []
     
@@ -216,16 +213,14 @@ def google_nearby(gmaps, place_id: str, keys: list, location: dict, radius: int)
 
 def distance_calc(lat1, lon1, lat2, lon2):
     '''
-    Author: Constantin-Bogdan Craciun
-
     Function to calculate the Euclidean distance between two points in X, Y coordinates.
     
-    Arguments:
-     - lat1, lon1: Latitud and longitud for point 1
-     - lat2, lon2: Latitud and longitud for point 2
+    Parameters:
+        - lat1, lon1: Latitud and longitud for point 1.
+        - lat2, lon2: Latitud and longitud for point 2.
 
      Returns:
-      - Euclidean distance in meters
+        - distance_in_meters: Euclidean distance in meters.
     '''
 
     distance_calculator = geodesic((lat1, lon1), (lat2, lon2))
@@ -238,16 +233,15 @@ def distance_calc(lat1, lon1, lat2, lon2):
 
 def check_response(url):
     '''
-    Author: Christian Margo Hansen
-
     Function to check the response from the requests call.
 
-    Arguments:
-     - url: Simple string with the url.
+    Parameters:
+        - url: Simple string with the url.
 
     Returns:
-     - html text response
+        - html_text: Html text response.
     '''
+    
     # Get the response and its status code
     response = requests.get(url)
     status_code = response.status_code
@@ -263,30 +257,26 @@ def check_response(url):
 
 def make_soup(html_text):
     '''
-    Author: Christian Margo Hansen
-    
     Parses a given HTML text and creates a BeautifulSoup object for easy HTML parsing and manipulation.
 
-    Arguments:
-    - html_text (str): A string containing HTML content. This is the text that will be parsed and converted into a BeautifulSoup object.
+    Parameters:
+        - html_text: A string containing HTML content. This is the text that will be parsed and converted into a BeautifulSoup object.
 
     Returns:
-    - BeautifulSoup object: An object that represents the parsed HTML.
+        - BeautifulSoup object: An object that represents the parsed HTML.
     '''
     return BeautifulSoup(html_text, 'html.parser')
 
 
 def get_contents(soup):
     '''
-    Author: Christian Margo Hansen
-    
     Extracts and structures review data from a BeautifulSoup object representing parsed HTML of a reviews page.
 
-    Arguments:
-    - soup (BeautifulSoup object): A BeautifulSoup object created from HTML content of a webpage, specifically structured to contain reviews.
+    Parameters:
+        - soup (BeautifulSoup object): A BeautifulSoup object created from HTML content of a webpage, specifically structured to contain reviews.
 
     Returns:
-    - list: A list of dictionaries, where each dictionary represents a single review's details extracted from the HTML.
+        - list: A list of dictionaries, where each dictionary represents a single review's details extracted from the HTML.
     '''
 
     entries = []
@@ -314,13 +304,14 @@ def get_contents(soup):
 
 def trustpilot_crawler(key, verbose=False):
     '''
-    Author: Christian Margo Hansen / Gino F. Fazzi
-
     Simple WebCrawler specifically for Trustpilot reviews.
 
-    Arguments:
-     - key: The key of the business to query.
-     - verbose: To print messages.
+    Parameters:
+        - key: The key of the business to query.
+        - verbose: To print messages.
+        
+    Returns:
+        - df: A DataFrame containing all scraped review data, or an empty DataFrame if the page does not exist.
     '''
     if verbose:
         print(f"Trying to get reviews for {key}...")
@@ -369,17 +360,15 @@ def trustpilot_crawler(key, verbose=False):
 
 def get_lat_lng(gmaps, address):
     '''
-    Author: Veron Hoxha
-
     This function retrieves the latitude and longitude of a specified address using the Google Maps API.
     
-    Arguments:
-    - gmaps (Google Maps Client object): An instance of the Google Maps Client, used to interact with the Google Maps API.
-    - address (str): The address for which latitude and longitude coordinates are to be obtained.
+    Parameters:
+        - gmaps (Google Maps Client object): An instance of the Google Maps Client, used to interact with the Google Maps API.
+        - address (str): The address for which latitude and longitude coordinates are to be obtained.
 
     Returns:
-    - tuple: A tuple containing the latitude and longitude (lat, lng) of the given address if successful.
-    - bool: Returns False if the geocoding process fails or if the address is not found.
+        - tuple: A tuple containing the latitude and longitude (lat, lng) of the given address if successful.
+        - bool: Returns False if the geocoding process fails or if the address is not found.
     '''
     try:
         geocode_result = gmaps.geocode(address)
@@ -394,12 +383,16 @@ def get_lat_lng(gmaps, address):
         print(f"An error occurred while geocoding: {e}")
         return False
     
-
 class KBHFacilitiesWebScraper:
     '''
-    Author: Christian Margo Hansen (structured as class by Gino F. Fazzi)
+    A web scraper for collecting information about various facilities in Copenhagen from a specified URL.
+    
+    Parameters:
+        - url: The URL to scrape data from. Default is 'https://kbhkort.kk.dk/spatialmap?page=widget-view&name=motion/motionslisten'.
+        - chrome_driver_path: Path to the Chrome WebDriver executable. Default is 'libraries/chromedriver-win64/chromedriver.exe'.
 
-    TODO: ADD DESCRIPTION
+    Returns:
+        - df_test: A DataFrame containing the scraped and processed data from the specified URL.
     '''
 
     def __init__(self, url: str='https://kbhkort.kk.dk/spatialmap?page=widget-view&name=motion/motionslisten', chrome_driver_path: str='libraries/chromedriver-win64/chromedriver.exe'):
@@ -554,14 +547,13 @@ class KBHFacilitiesWebScraper:
 
 def remove_emojis(text):
     '''
-    Author: Gino F. Fazzi
-
     Custom function to remove unicode characters depicting an emoji.
 
-    Arguments:
-     - text: String with potential emojis.
+    Parameters:
+        - text: String with potential emojis.
 
-    returns the string without emojis.
+    Returns:
+        - text: The string without emojis.
     '''
 
     for lang in UNICODE_EMOJI:
@@ -573,17 +565,17 @@ def remove_emojis(text):
 """
 def translate_text(input_text, model, tokenizer):
     '''
-    Author: Gino F. Fazzi
-
     Custom function to translate text. Can be applied to pandas dataframe column.
 
-    Arguments:
-     - input_text: The text in original language to translate.
-     - model: The HuggingFace model object.
-     - tokenizer: The HuggingFace tokenizer object.
+    Parameters:
+        - input_text: The text in original language to translate.
+        - model: The HuggingFace model object.
+        - tokenizer: The HuggingFace tokenizer object.
 
-    Returns the translated text.
+    Returns:
+        - translated_text: The translated text.
     '''
+    
     input_ids = tokenizer.encode(input_text, max_length=512, return_tensors="pt")
     translated_ids = model.generate(input_ids, max_length=512)
     translated_text = tokenizer.decode(translated_ids[0], skip_special_tokens=True)
@@ -593,15 +585,14 @@ def translate_text(input_text, model, tokenizer):
 
 def translate(df, text_colname: str, translation_colname: str, model_name: str="Helsinki-NLP/opus-mt-da-en"):
     '''
-    Author: Gino F. Fazzi
-
     Custom function to translate a text column from a given dataset using a default Huggingface pretrained model.
 
-    Arguments:
-     - df: The dataframe that contains the text column to translate.
-     - model_name: The HuggingFace model name. By default danish to enlish.
+    Parameters:
+        - df: The dataframe that contains the text column to translate.
+        - model_name: The HuggingFace model name. By default danish to enlish.
 
-    Returns: the original dataframe with the translations in a new column.
+    Returns: 
+        - df: The original dataframe with the translations in a new column.
     '''
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -652,10 +643,15 @@ def translate(df, text_colname: str, translation_colname: str, model_name: str="
 
 
 def get_reviews(gmaps, search_input):
-    '''
-    Author: Veron Hoxha
-         
-    TODO: ADD DESCRIPTION
+    '''  
+    Retrieves reviews for a given place using Google Maps API.
+    
+    Parameters:
+        - gmaps: The Google Maps client instance.
+        - search_input: The text query for finding the place on Google Maps.
+        
+    Returns: 
+        - list of tuples: A list of tuples containing the author's name, review text, and rating for each review, if found. Returns None if no reviews are found or in case of an exception.
     '''
     try:
         place_result = gmaps.find_place(input=search_input, input_type='textquery')
@@ -672,9 +668,14 @@ def get_reviews(gmaps, search_input):
     
 def review_finder(gmaps, df):
     '''
-    Author: Veron Hoxha
+    Improves the DataFrame with review information and geographical coordinates for each entry.
     
-    TODO: ADD DESCRIPTION
+    Parameters:
+        - gmaps: The Google Maps client instance.
+        - df: A DataFrame containing columns 'address' and 'location'.
+
+    Returns:
+        new_df: An updated DataFrame with additional columns for latitude ('lat'), longitude ('lng'), review author ('author'), review text ('review'), and review rating ('rating'). Rows without reviews are excluded.
     '''
 
     df['lat'] = None
@@ -737,10 +738,15 @@ def review_finder(gmaps, df):
 
 def fleiss_kappa(annotations, categories, labels):
     '''
-    Author: Gino F. Fazzi
+    Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa).
     
-    TODO: ADD DESCRIPTION
-    Custom function to calculate Fleiss' Kappa for IAA (based on https://en.wikipedia.org/wiki/Fleiss%27_kappa)
+    Parameters:
+        - annotations: A DataFrame containing annotations with a unique ID for each item.
+        - categories: A list of categories to be evaluated in the annotations.
+        - labels: A list of possible labels.
+
+    Returns:
+        - k: The calculated Fleiss' Kappa value, representing the IAA.
     '''
     
     overlapping_IDs = annotations["ID"].unique()
@@ -786,8 +792,15 @@ def fleiss_kappa(annotations, categories, labels):
 
 def parse_label_studio_file(filepath):
     '''
-    TODO: ADD DESCRIPTION
+    Parses a JSON file from Label Studio and converts it into a pandas DataFrame.
+    
+    Parameters:
+        - filepath: The file path of the JSON file to be parsed.
+
+    Returns:
+        - pandas.DataFrame: A DataFrame with columns for each extracted data point and rows for each annotation instance.
     '''
+    
     # Open file
     file = open(filepath, encoding="utf-8")
     # Parse JSON to dict
@@ -845,12 +858,12 @@ def compute_BLEU(references, translations):
     Compute BLEU scores for a list of reference sentences and a list of translated sentences.
 
     Parameters:
-    - list_of_references: List of lists, where each sublist contains reference translations for a sentence.
-    - list_of_candidates: List of sentences generated by the model.
+        - list_of_references: List of lists, where each sublist contains reference translations for a sentence.
+        - list_of_candidates: List of sentences generated by the model.
 
     Returns:
-    - bleu_scores: List of BLEU scores for each sentence.
-    - cumulative_bleu: Overall BLEU score for the entire list.
+        - bleu_scores: List of BLEU scores for each sentence.
+        - cumulative_bleu: Overall BLEU score for the entire list.
     '''
     # Ensure that the lengths of the reference and candidate lists are the same
     assert len(references) == len(translations), "Mismatched number of references and candidates"
@@ -869,11 +882,11 @@ def compute_WER(reference, hypothesis):
     Calculate Word Error Rate (WER) between reference and translation.
 
     Parameters:
-    - reference: list of words (human translation)
-    - hypothesis: list of words (machine translation)
+        - reference: list of words (human translation)
+        - hypothesis: list of words (machine translation)
 
     Returns:
-    - wer: Word Error Rate
+        - wer: Word Error Rate
     """
     # We lowercase everything to avoid errors solely based in caseing
     reference = reference.lower()
@@ -903,15 +916,13 @@ def compute_WER(reference, hypothesis):
 
     return wer
 
-
 class WER:
     '''
-    Author: Gino F. Fazzi
-
     Class to compute Word Error Rate between reference translations (human) and predictions (machine).
     It calculate some metrics like average WER for all instances, and provides ranking of best and worst instances
     for inspection.
     '''
+    
     def __init__(self, texts: list, references: list, predictions: list):
         # We first make sure the shapes are equal
         assert len(texts) == len(references) and len(references) == len(predictions), print("WARNING: Reference and Predictions array should have the same length.")
@@ -920,7 +931,6 @@ class WER:
         self.predictions = predictions
         self.n = len(self.references)
         pass
-
 
     def __compute(self):
         # Container
@@ -938,7 +948,6 @@ class WER:
         self.__compute()
         return sum([x[3] for x in self.WERs]) / self.n
 
-
     def ranking(self, how="full"):
         assert how in ["top", "bottom", "full"], print("How argument must be either top, bottom, both or full")
 
@@ -952,10 +961,15 @@ class WER:
 
 def num_to_sent(x):
     '''
-    Author: Gino F. Fazzi
-
     Custom function to map numerical-encoded sentiments to human-readable labels.
+    
+    Parameters:
+        - x: The numerical sentiment value to be mapped.
+
+    Returns:
+        - str: The textual representation of the sentiment ("Positive", "Neutral", "Negative", or "None").
     '''
+    
     if x == 1.0:
         return "Positive"
     elif x == 0.0:
@@ -969,7 +983,14 @@ def num_to_sent(x):
 def lemmatize_with_postag(sentence):
     '''
     Function to lemmatize each word with its POS tag.
+    
+    Parameters:
+        - sentence: The sentence to be lemmatized.
+    
+    Returns:
+        - str: The lemmatized sentence.
     '''
+    
     sent = TextBlob(sentence)
     tag_dict = {"J": 'a', 
                 "N": 'n', 
@@ -977,13 +998,18 @@ def lemmatize_with_postag(sentence):
                 "R": 'r'}
     words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]    
     lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
+    
     return " ".join(lemmatized_list)
 
 def get_icon(activity_type):
     '''
-    Author: Veron Hoxha
+    Returns an icon based on the activity type.
     
-    TODO: ADD DESCRIPTION
+    Parameters:
+        - activity_type: The type of activity to get the icon for.
+        
+    Returns: 
+        - str: The name of the icon associated with the given activity type.
     '''
     
     icons = {
@@ -1004,9 +1030,15 @@ def get_icon(activity_type):
 
 def get_rating_average(data, lat_field, lng_field):
     '''
-    Author: Veron Hoxha
+    Computes the average rating for each location/address in the data and returns a function to determine the color coding based on this average rating.
     
-    TODO: ADD DESCRIPTION
+    Parameters:
+        - data: The DataFrame containing ratings and location data.
+        - lat_field: The name of the column in 'data' representing latitude.
+        - lng_field: The name of the column in 'data' representing longitude.
+        
+    Returns:
+        - function: A function that takes latitude and longitude as input and returns a color.
     '''
     
     data['lat_lng'] = data[[lat_field, lng_field]].apply(tuple, axis=1)
@@ -1028,9 +1060,14 @@ def get_rating_average(data, lat_field, lng_field):
 
 def add_kbh_markers(grouped_data, marker_cluster):
     '''
-    Author: Veron Hoxha
+    Adds customized markers to a Folium map based on data provided in 'grouped_data'.
     
-    TODO: ADD DESCRIPTION
+    Parameters:
+        - grouped_data: Data with latitude, longitude, activity, and rating columns.
+        - marker_cluster: The marker cluster object to add markers to.
+    
+    Returns:
+        - None: This function does not return a value, it modifies `marker_cluster` in place.
     '''
     
     get_color = get_rating_average(grouped_data, 'lat', 'lng')
@@ -1060,10 +1097,14 @@ def add_kbh_markers(grouped_data, marker_cluster):
 
 def add_google_markers(grouped_data, marker_cluster):
     '''
-    Author: Veron Hoxha
+    Adds customized markers to a Folium map based on data provided in 'grouped_data'.
     
-    TODO: ADD DESCRIPTION
+    Parameters:
+        - grouped_data: Data with latitude, longitude, type, and rating columns.
+        - marker_cluster: The marker cluster object to add markers to.
     
+    Returns:
+        - None: This function does not return a value, it modifies `marker_cluster` in place.
     '''
     
     get_color = get_rating_average(grouped_data, 'lat', 'lng')
@@ -1096,12 +1137,13 @@ def grammar_corrector(text:str) -> str:
     """
     Corrects spelling and grammar in the given text.
 
-    Args:
-        text (str or list): The input text to be corrected. It can be a single string or a list of strings.
+    Parameters:
+        - text: The input text to be corrected. It can be a single string or a list of strings.
 
     Returns:
-        str or list: The corrected text, with spelling and grammar issues fixed.
+        - cleaned_text: The corrected text, with spelling and grammar issues fixed.
     """
+    
     cleaned_text = []
 
     if isinstance(text, str):
