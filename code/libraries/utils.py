@@ -7,6 +7,7 @@
 from datetime import datetime
 import regex as re
 import json
+from collections import Counter
 
 # DATA MANIPULATION
 import pandas as pd
@@ -29,6 +30,8 @@ from textblob import TextBlob, Word
 import pkg_resources
 import symspellpy
 from symspellpy import SymSpell, Verbosity
+from nltk.corpus import stopwords
+nltk.download('stopwords', quiet=True)
 nltk.download('punkt', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 nltk.download('wordnet', quiet=True)
@@ -49,6 +52,7 @@ import folium
 # WARNINGS
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pkg_resources")
+
 
 ###################################################################################################
 
@@ -1161,7 +1165,7 @@ def grammar_corrector(text:str) -> str:
                 corrected_word = word
             else:
                 # If the word does not contain a numeric character, perform correction
-                corrected_word = sym_spell.lookup(word.lower(), u.Verbosity.CLOSEST, max_edit_distance=2)
+                corrected_word = sym_spell.lookup(word.lower(), Verbosity.CLOSEST, max_edit_distance=2)
                 corrected_word = corrected_word[0].term if corrected_word and corrected_word[0] else word
 
             # Append the punctuation back to the corrected word if the original word had it
@@ -1180,3 +1184,19 @@ def grammar_corrector(text:str) -> str:
         return cleaned_text[0]  # Return the corrected string.
     else:
         return cleaned_text
+    
+
+def word_counter(text_array, stopwords=set(stopwords.words('english'))):
+    # Combine all the text into a single string
+    combined_text = ' '.join(text_array)
+
+    # Tokenize the text using NLTK
+    words = nltk.word_tokenize(combined_text)
+
+    # Remove stopwords
+    words = [word.lower() for word in words if word.isalnum() and word.lower() not in stopwords]
+
+    # Use Counter to count the occurrences of each word
+    word_counts = Counter(words)
+
+    return word_counts
