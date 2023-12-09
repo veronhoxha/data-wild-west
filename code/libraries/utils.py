@@ -49,6 +49,9 @@ from IPython.display import clear_output
 # MAPS
 import folium
 
+# GRAPH
+import plotly.graph_objects as go
+
 # WARNINGS
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pkg_resources")
@@ -1200,3 +1203,62 @@ def word_counter(text_array, stopwords=set(stopwords.words('english'))):
     word_counts = Counter(words)
 
     return word_counts
+
+
+def vertical_diverging_bar(x, pyvalues, nyvalues, x_label=None,y_label=None, text_font="Times New Roman", text_size=32):
+    # Create figure
+    diverging = go.Figure()
+
+    x, py, ny = x, pyvalues.values, nyvalues.values
+
+    # Plot Positive values
+    diverging.add_trace(go.Bar(
+    y=py,
+    x=x,
+    text = py,    
+    textfont=dict(
+        family=text_font,
+        size=text_size,
+        color="Black"
+    ),
+    orientation='v',
+    name="Positive",
+    customdata=py,
+    hovertemplate="%{y}: %{x}"
+    ))
+
+    # Plot Negative values
+    diverging.add_trace(go.Bar(
+    y=-ny,
+    x=x,
+    text = ny,    
+    textfont=dict(
+        family=text_font,
+        size=text_size,
+        color="Black"
+    ),
+    orientation='v',
+    name="Negative",
+    customdata=ny,
+    hovertemplate="%{y}: %{customdata}"
+    ))
+
+    # Format plot
+    diverging.update_layout(barmode='relative',
+                        height=1280,
+                        width=720,
+                        bargap=0.42,
+                        legend_orientation='v',
+                        legend_x=1,legend_y=0,
+                        xaxis_title=x_label,
+                        yaxis_title=y_label,
+                        xaxis = dict(
+                        tickfont = dict(size=text_size)),
+                        font=dict(
+                        family=text_font,
+                        size=text_size,
+                        color="Black"
+                        )
+                        )
+
+    return diverging
