@@ -45,6 +45,7 @@ from tqdm import tqdm
 from geopy.distance import geodesic
 from IPython.display import display
 from IPython.display import clear_output
+import seaborn as sns
 
 # MAPS
 import folium
@@ -1190,6 +1191,17 @@ def grammar_corrector(text:str) -> str:
     
 
 def word_counter(text_array, stopwords=set(stopwords.words('english'))):
+    '''
+    Counts the occurrences of each word in a given array of text, excluding stopwords.
+    
+    Parameters:
+        - text_array: An array of strings to be analyzed.
+        - stopwords: A set of words to be excluded from the count. 
+
+    Returns:
+        - word_counts: A Counter object mapping each word to its frequency in the text.
+    '''
+    
     # Combine all the text into a single string
     combined_text = ' '.join(text_array)
 
@@ -1206,11 +1218,30 @@ def word_counter(text_array, stopwords=set(stopwords.words('english'))):
 
 
 def vertical_diverging_bar(x, pyvalues, nyvalues, x_label=None,y_label=None, text_font="Times New Roman", text_size=32):
+    '''
+    Creates a vertical diverging bar chart using Plotly.
+
+    Parameters:
+        - x: Categories along the x-axis.
+        - pyvalues: Positive values corresponding to each x-axis category.
+        - nyvalues: Negative values corresponding to each x-axis category.
+        - x_label: Label for the x-axis. Defaults to None.
+        - y_label: Label for the y-axis. Defaults to None.
+        - text_font: Font family for text in the chart. Defaults to "Times New Roman".
+        - text_size: Font size for text in the chart. Defaults to 32.
+
+    Returns:
+        - diverging: A Plotly Figure object representing the diverging bar chart.
+    '''
+    
     # Create figure
     diverging = go.Figure()
 
     x, py, ny = x, pyvalues.values, nyvalues.values
-
+    colors = sns.color_palette("colorblind").as_hex()
+    positive_color = colors[0]
+    negative_color = colors[1]
+    
     # Plot Positive values
     diverging.add_trace(go.Bar(
     y=py,
@@ -1223,6 +1254,7 @@ def vertical_diverging_bar(x, pyvalues, nyvalues, x_label=None,y_label=None, tex
     ),
     orientation='v',
     name="Positive",
+    marker_color = positive_color,
     customdata=py,
     hovertemplate="%{y}: %{x}"
     ))
@@ -1239,6 +1271,7 @@ def vertical_diverging_bar(x, pyvalues, nyvalues, x_label=None,y_label=None, tex
     ),
     orientation='v',
     name="Negative",
+    marker_color =  negative_color,
     customdata=ny,
     hovertemplate="%{y}: %{customdata}"
     ))
