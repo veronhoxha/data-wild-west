@@ -24,6 +24,14 @@ Located in the **"data"** folder:
 
 Each folder is structured to provide a clear and organized workflow, ensuring easy navigation and replication of the project's results.
 
+### How to run our notebook and recreate the same results ?
+
+Make sure you are in the right directory where you have all the necessary files, so you can run the following commands below.
+
+We use Python 3.10.11.
+
+    1) pip install -r requirements.txt
+    2) "Run All" button if you are using VS Code
 
 
 ### Important what README.MD should contain
