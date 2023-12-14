@@ -1,51 +1,50 @@
-# Data Wild West - Project Structure
+# Navigating the Gym Landscape: Analyzing Customer Reviews in Danish Facilities - Project Structure
 
-This repository contains all the necessary code and resources to reproduce the Data Wild West group project. 
+## Introduction
+This repository hosts all the necessary resources for the ``"Navigating the Gym Landscape: Analyzing Customer Reviews in Danish Facilities"`` project by the Data Wild West group.
 
-Below is an overview of the key components and their organization:
+## Table of Contents
+- [Introduction](#introduction)
+- [Project Structure](#project-structure)
+  - [Code](#code)
+  - [Data](#data)
+  - [Additional Folders](#additional-folders)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributors](#contributors)
+
+## Project Structure
 
 ### Code
 Located in the **"code"** folder:
-
-    - Project_Notebook.ipynb: The main Jupyter Notebook where all the analyses are performed.
-    - libraries/utils.py: This file, located in the libraries subfolder, 
-    contains all the functions utilized in Project_Notebook.ipynb.
+- `project_notebook.ipynb`: Main Jupyter Notebook where all the analyses are performed.
+- `libraries/utils.py`:  This file, located in the libraries subfolder, contains all the functions used in `project_notebook.ipynb`.
 
 ### Data
 Located in the **"data"** folder:
+- This directory contains both the raw and processed data utilized in the project.
 
-    - This directory houses both the raw and processed data utilized in the project.
+*Note:* The final processed dataset is at `/data/processed/final_reviews.csv`.
 
 ### Additional Folders
-    - "images": Contains images used in the report.
-    - "translations": This folder includes any translation files related to the project.
-    - "visualizations": Here, you will find visual representations and output generated during the project.
-    - "annotations": Contains annotations results, samples and the guideline.
+- `images`: Images used in reports.
+- `translations`: Translation files related to the project.
+- `annotations`: Annotations results, samples and the guideline.
+- `report`: The project report.
 
-Each folder is structured to provide a clear and organized workflow, ensuring easy navigation and replication of the project's results.
+## Installation
+Ensure Python 3.10.11 is installed and then run:
+- `pip install -r requirements.txt`
 
-### How to run our notebook and recreate the same results ?
+## Usage
+To run the notebook and recreate results:
+1. Navigate to the project directory.
+2. Run `project_notebook.ipynb` using the "Run All" feature in VS Code or another IDE.
 
-Make sure you are in the right directory where you have all the necessary files, so you can run the following commands below.
-
-We use Python 3.10.11.
-
-    1) pip install -r requirements.txt
-    2) "Run All" button if you are using VS Code
-
-
-### Important what README.MD should contain
-
-README.MD with description of the data, what all the files do - should be usable for another KDS or CS student
-
-Project hand-in:
-
-    1) Data & code
-    1) Github
-    2) E.g. large files can be external, e.g. OSF (5 GB free)
-    - original/raw data
-    - processed data
-    - code/scripts you used for processing, analysis
-    - should reproduce the tables/figures in your report
-    - with comments, consistent variable naming, etc.
-    - README.MD with description of the data, what all the files do - should be usable for another KDS or CS student
+## Contributors
+This project was created by:
+- Gino F. Fazzi
+- Veron Hoxha
+- Chrisanna K. Cornish
+- Christian M. Hansen
+- Constantin-Bogdan Craciun

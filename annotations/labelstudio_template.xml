@@ -1,0 +1,17 @@
+<View>
+  <Text name="text" value="$text"/>
+  <Taxonomy name="taxonomy" toName="text">
+    <Choice value="Positive">
+       <Choice value="Equipment"/>
+      <Choice value="Location"/>
+      <Choice value="Hygiene"/>
+      <Choice value="Staff"/>
+    </Choice>
+    <Choice value="Negative">
+      <Choice value="Equipment"/>
+      <Choice value="Location"/>
+      <Choice value="Hygiene"/>
+      <Choice value="Staff"/>
+    </Choice>
+  </Taxonomy>
+</View>
